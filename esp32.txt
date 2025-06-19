@@ -1,0 +1,49 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <HardwareSerial.h>
+
+const char* ssid = "Airtel_suga_4436";        // 🔁 Set your Wi-Fi name
+const char* password = "air21669"; // 🔁 Set your Wi-Fi password
+
+const char* serverUrl = "http://192.168.1.9:8000/api/door/"; // Django API
+
+HardwareSerial mySerial(2); // TX = GPIO 17, RX = GPIO 16
+
+void setup() {
+  Serial.begin(115200);
+  mySerial.begin(9600, SERIAL_8N1, 16, 17); // Start Serial2
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("Connected. IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    int httpCode = http.GET();
+
+    if (httpCode == 200) {
+      String response = http.getString();
+      Serial.println("Server response: " + response);
+
+      if (response.indexOf("open") >= 0) {
+        Serial.println("Sending 'open' to Arduino...");
+        mySerial.println("open");  // Send via Serial2 to Arduino
+      }
+    } else {
+      Serial.print("HTTP error: ");
+      Serial.println(httpCode);
+    }
+
+    http.end();
+  }
+
+  delay(3000); // Poll every 3 seconds
+}

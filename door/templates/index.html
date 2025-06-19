@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sodium Lock Access</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005fcc;
+        }
+
+        .response {
+            margin-top: 20px;
+            font-size: 14px;
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Sodium Lock</h2>
+        <input type="number" id="user_id" placeholder="User ID" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button onclick="submitForm()">Unlock</button>
+
+        <div class="response" id="responseBox"></div>
+    </div>
+
+    <script>
+        async function submitForm() {
+            const user_id = document.getElementById('user_id').value;
+            const password = document.getElementById('password').value;
+            const responseBox = document.getElementById('responseBox');
+
+            if (!user_id || !password) {
+                responseBox.innerHTML = "<span class='error'>Please enter both fields.</span>";
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/door/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({ user_id: parseInt(user_id), password: password }),
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    responseBox.innerHTML = `
+                        Access Granted!<br>
+                        <strong>Status:</strong> ${data.status}<br>
+                        <strong>Open:</strong> ${data.open_time}<br>
+                        <strong>Close:</strong> ${data.close_time}
+                    `;
+                } else {
+                    responseBox.innerHTML = `<span class='error'>${data.error || 'Invalid request'}</span>`;
+                }
+            } catch (err) {
+                responseBox.innerHTML = "<span class='error'>Failed to connect to server.</span>";
+                console.error(err);
+            }
+        }
+
+        // CSRF token helper (for Django)
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [key, value] = cookie.trim().split('=');
+                if (key === name) return decodeURIComponent(value);
+            }
+            return '';
+        }
+    </script>
+</body>
+</html>

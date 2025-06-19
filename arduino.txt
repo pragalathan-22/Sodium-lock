@@ -1,0 +1,24 @@
+int relayPin = 7;
+
+void setup() {
+  Serial.begin(9600);                  // Start serial (match ESP32 baud)
+  pinMode(relayPin, OUTPUT);          // Relay output pin
+  digitalWrite(relayPin, HIGH);       // Keep lock closed by default (relay off)
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();                   // Clean the input string
+
+    if (command == "open") {
+      digitalWrite(relayPin, LOW);    // Activate relay → unlock
+      Serial.println("Door opened");
+      delay(2000);                    // Keep door unlocked for 2 seconds
+      digitalWrite(relayPin, HIGH);   // Deactivate relay → lock
+      Serial.println("Door locked");
+    } else {
+      Serial.println("Invalid command");
+    }
+  }
+}
