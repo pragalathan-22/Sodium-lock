@@ -28,6 +28,8 @@
 #             door_command['status'] = 'locked'
 #         return Response({'status': current_status})
 
+
+
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -93,3 +95,38 @@ def door_api(request):
         if current_status == 'open':
             door_command['status'] = 'locked'
         return Response({'status': current_status})
+
+
+# views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import DoorAccess
+from .serializers import DoorAccessListSerializer
+
+@api_view(['GET'])
+def door_access_list(request):
+    logs = DoorAccess.objects.all().order_by('-id')
+    serializer = DoorAccessListSerializer(logs, many=True)
+    return Response(serializer.data)
+
+@api_view(['PATCH', 'DELETE'])
+def door_access_detail(request, id):
+    try:
+        log = DoorAccess.objects.get(id=id)
+    except DoorAccess.DoesNotExist:
+        return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PATCH':
+        log.password = request.data.get('password', log.password)
+        log.save()
+        return Response({'message': 'Updated'})
+
+    if request.method == 'DELETE':
+        log.delete()
+        return Response({'message': 'Deleted'})
+
+from django.shortcuts import render
+
+def admin_panel(request):
+    return render(request, "admin_panel.html")  # Create this HTML file in templates/
+
