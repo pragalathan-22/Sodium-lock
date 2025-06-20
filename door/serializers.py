@@ -5,6 +5,7 @@
 
 
 from rest_framework import serializers
+from .models import DoorAccess
 
 class DoorAccessSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
@@ -16,3 +17,5 @@ class DoorAccessResponseSerializer(serializers.Serializer):
     status = serializers.CharField()
     open_time = serializers.DateTimeField()
     close_time = serializers.DateTimeField()
+
+

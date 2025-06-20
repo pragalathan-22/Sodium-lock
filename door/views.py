@@ -31,10 +31,11 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import DoorAccessSerializer
+from .serializers import DoorAccessSerializer, DoorAccessResponseSerializer
 from .models import DoorAccess
 from django.utils import timezone
 from datetime import timedelta
+
 
 # Door lock state
 door_command = {"status": "locked"}
